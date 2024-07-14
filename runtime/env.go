@@ -1,7 +1,7 @@
 package runtime
 
 import (
-	"mvdan.cc/sh/expand"
+	"mvdan.cc/sh/v3/expand"
 )
 
 // Env returns the xbps-src environment
@@ -10,7 +10,8 @@ func (r *Runtime) Env(arch, cross string) Environ {
 	m = expand.Variable{
 		Exported: true,
 		ReadOnly: true,
-		Value:    arch,
+		Kind: expand.String,
+		Str:    arch,
 	}
 	t = m
 
@@ -18,7 +19,8 @@ func (r *Runtime) Env(arch, cross string) Environ {
 		t = expand.Variable{
 			Exported: true,
 			ReadOnly: true,
-			Value:    cross,
+			Kind: expand.String,
+			Str:    cross,
 		}
 	}
 
@@ -26,7 +28,8 @@ func (r *Runtime) Env(arch, cross string) Environ {
 		"XBPS_UHELPER_CMD": expand.Variable{
 			Exported: true,
 			ReadOnly: true,
-			Value:    "xbps-uhelper",
+			Kind: expand.String,
+			Str:    "xbps-uhelper",
 		},
 		"XBPS_MACHINE":        m,
 		"XBPS_TARGET_MACHINE": t,

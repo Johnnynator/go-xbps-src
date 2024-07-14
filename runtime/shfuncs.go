@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"io"
 
-	"mvdan.cc/sh/interp"
+	"mvdan.cc/sh/v3/interp"
 )
 
 // write writes a string to a module context's stdout (linked in ctx).
 func write(ctx context.Context, s string) error {
-	mod, ok := interp.FromModuleContext(ctx)
-	if !ok {
-		return errors.New("unable to acquire module context")
-	}
+	mod := interp.HandlerCtx(ctx)
 	_, err := io.WriteString(mod.Stdout, s)
 	return err
 }

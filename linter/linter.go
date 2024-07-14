@@ -11,7 +11,7 @@ import (
 	"io"
 	"os"
 
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 // Pos represents the position in the source (line, column).

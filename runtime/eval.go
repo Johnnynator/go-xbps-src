@@ -7,12 +7,14 @@ import (
 	"os"
 	"strings"
 
-	"mvdan.cc/sh/expand"
-	"mvdan.cc/sh/interp"
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 )
 
-func limitedExec(ctx context.Context, path string, args []string) error {
+func limitedExec(next interp.ExecHandlerFunc) interp.ExecHandlerFunc {
+
+	return func(ctx context.Context, args []string) error {
 	switch args[0] {
 	case "vopt_if":
 		return shVoptIf(ctx, args)
@@ -26,14 +28,17 @@ func limitedExec(ctx context.Context, path string, args []string) error {
 	case "seq":
 	case "cut":
 	default:
-		panic(args[0])
+		return next(ctx, args)
 	}
 	return nil
+	}
 }
 
 func limitedOpen(ctx context.Context, path string, flag int, perm os.FileMode) (io.ReadWriteCloser, error) {
-	panic("open")
-	return nil, nil
+	// panic("open")
+	// return nil, nil
+	path = "/dev/null"
+	return interp.DefaultOpenHandler()(ctx, path, flag, perm)
 }
 
 // evalSubPkgs
@@ -46,7 +51,7 @@ func (r *Runtime) evalSubPkgs(
 	for _, f := range r.setupSubpkg {
 		if err := run.Run(context.TODO(), f); err != nil {
 			// XXX: ignore exit status?
-			if _, ok := err.(interp.ExitStatus); !ok {
+			if _, ok := interp.IsExitStatus(err); !ok {
 				return nil, fmt.Errorf("could not run: %v", err)
 			}
 		}
@@ -68,11 +73,11 @@ func (r *Runtime) evalSubPkgs(
 			return nil, fmt.Errorf("missing sub package function: %s", fnname)
 		}
 
-		run.Vars["pkgname"] = expand.Variable{Value: subpkgname}
+		run.Vars["pkgname"] = expand.Variable{Kind: expand.String, Str: subpkgname}
 
 		if err := run.Run(ctx, fn); err != nil {
 			// XXX: ignore exit status?
-			if _, ok := err.(interp.ExitStatus); !ok {
+			if _, ok := interp.IsExitStatus(err); !ok {
 				return nil, fmt.Errorf("could not run: %v", err)
 			}
 		}
@@ -128,17 +133,19 @@ func (r *Runtime) Eval(
 	env := r.Env(arch, cross)
 	opts := make(Options)
 
-	run, err := interp.New(interp.Env(MultiEnviron{env, opts}))
+	run, err := interp.New(
+		interp.Env(MultiEnviron{env, opts}),
+		interp.ExecHandlers(limitedExec),
+		interp.OpenHandler(limitedOpen),
+	)
 	if err != nil {
 		return nil, err
 	}
-	run.Exec = limitedExec
-	run.Open = limitedOpen
 
 	// pass 1 to get options
 	if err := run.Run(context.TODO(), file); err != nil {
 		// XXX: ignore exit status?
-		if _, ok := err.(interp.ExitStatus); !ok {
+		if _, ok := interp.IsExitStatus(err); !ok {
 			return nil, fmt.Errorf("could not run: %s", err)
 		}
 	}
@@ -151,7 +158,7 @@ func (r *Runtime) Eval(
 		if file, ok := r.buildStyleEnv[name]; ok {
 			if err := run.Run(context.TODO(), file); err != nil {
 				// XXX: ignore exit status?
-				if _, ok := err.(interp.ExitStatus); !ok {
+				if _, ok := interp.IsExitStatus(err); !ok {
 					return nil, fmt.Errorf("could not run: %v", err)
 				}
 			}
@@ -162,7 +169,7 @@ func (r *Runtime) Eval(
 	ctx := context.WithValue(context.Background(), "options", opts)
 	if err := run.Run(ctx, file); err != nil {
 		// XXX: ignore exit status?
-		if _, ok := err.(interp.ExitStatus); !ok {
+		if _, ok := interp.IsExitStatus(err); !ok {
 			return nil, fmt.Errorf("could not run: %v", err)
 		}
 	}

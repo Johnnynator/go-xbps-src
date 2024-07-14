@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"mvdan.cc/sh/expand"
+	"mvdan.cc/sh/v3/expand"
 )
 
 type OptionsCtxKey struct{}
@@ -54,7 +54,8 @@ func (o Options) Get(name string) expand.Variable {
 		Exported: false,
 		ReadOnly: true,
 		Local:    true,
-		Value:    val,
+		Kind: expand.String,
+		Str:    val,
 	}
 }
 
@@ -69,7 +70,8 @@ func (o Options) Each(fn func(string, expand.Variable) bool) {
 			Exported: false,
 			ReadOnly: true,
 			Local:    true,
-			Value:    val,
+			Kind: expand.String,
+			Str:    val,
 		})
 	}
 }

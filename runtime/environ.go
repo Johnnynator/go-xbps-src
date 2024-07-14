@@ -1,7 +1,7 @@
 package runtime
 
 import (
-	"mvdan.cc/sh/expand"
+	"mvdan.cc/sh/v3/expand"
 )
 
 // Environ implements expand.Environ on a map
@@ -27,9 +27,9 @@ type MultiEnviron []expand.Environ
 
 // Get retrieves a variable by its name from the first environ providing it
 func (e MultiEnviron) Get(name string) expand.Variable {
-	z := expand.Variable{}
 	for _, env := range e {
-		if vr := env.Get(name); vr != z {
+		vr := env.Get(name)
+		if vr.IsSet() {
 			return vr
 		}
 	}

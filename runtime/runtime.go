@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 const envFilesSubPkg = "common/environment/setup-subpkg/*.sh"

@@ -7,7 +7,7 @@ import (
 
 	"github.com/Duncaen/go-xbps-src/runtime"
 
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 type Template struct {

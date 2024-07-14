@@ -1,7 +1,7 @@
 package linter
 
 import (
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 var defaultFns = map[string]bool{

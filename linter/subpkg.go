@@ -3,7 +3,7 @@ package linter
 import (
 	"regexp"
 
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 var patSubPkg = regexp.MustCompile(`_package$`)
